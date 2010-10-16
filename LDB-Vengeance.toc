@@ -1,0 +1,20 @@
+## Interface: 40000
+## Title: |cffC79C6ELDB|r-Vengeance
+## X-BrokerName: Vengeance
+## Notes: Vengeance module for Broker displays.
+## Notes-deDE: Rache Modul für DataBroker
+## Author: Keya
+## X-Embeds: LibDataBroker-1.1
+## X-Category: Combat
+## Version: 0.1.0
+## SavedVariables: LDBVengeanceDB
+
+## Notes: Vengeance display for all kind of tanks.
+
+## LoadManagers: AddonLoader
+## X-LoadOn-Always: Delayed
+
+# Libraries
+embeds.xml
+
+LDB-Vengeance.lua
