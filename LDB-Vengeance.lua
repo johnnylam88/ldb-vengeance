@@ -165,7 +165,7 @@ end
 function LDBVengeance:OnTooltipShow()
 	self:AddLine(defaultText.." |cff00ff000.0.1|r")
 	self:AddLine("|cffffffffDisplays the current, max and percentage value of your vengeance buff|r")
-	if playerClass and playerClass ~= "DRUID" and playerClass ~= "WARRIOR" and playerClass ~= "DEATHKNIGHT" and playerClass ~= "PALADIN" then
+	if playerClass ~= "DRUID" and playerClass ~= "WARRIOR" and playerClass ~= "DEATHKNIGHT" and playerClass ~= "PALADIN" then
 		self:AddLine("|cffff0000Note: This addon does not make any sense for classes that don't have a Vengeance buff|r")
 	end
 end
