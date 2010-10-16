@@ -1,0 +1,12 @@
+package-as: LDB-Vengeance
+
+externals:
+    libs/LibStub: svn://svn.wowace.com/wow/libstub/mainline/tags/1.0
+    libs/CallbackHandler-1.0: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
+
+ignore:
+	- .pkgmeta
+
+manual-changelog: changelog.txt
+
+enable-nolib-creation: no
