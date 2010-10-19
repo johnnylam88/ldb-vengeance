@@ -27,50 +27,32 @@ addon.ScanTip:SetOwner(UIParent, "ANCHOR_NONE")
 local playerClass = nil
 local KNOWN_VENGEANCE_SPELL_ID = 93098
 
-local function setCorrectVengeanceIcon(first)
-	if defaultIcon ~= nil and not first then
-		LDBVengeance.icon = defaultIcon
-	else
-		local name, _, _, _, _, _, _, _, _ = GetSpellInfo(KNOWN_VENGEANCE_SPELL_ID)
-		local _, _, icon, _, _, _, _, _, _ = GetSpellInfo(name)
-		if icon then
-			LDBVengeance.icon = icon
-			defaultIcon = icon
-		end
-	end
+local vengeanceSpellName = nil
+local vengeanceSpellIcon = nil
+local vengeanceSpellId = nil
+
+local function setDefaultVengeanceIcon()
+	LDBVengeance.icon = defaultIcon
+end
+
+local function InitVengeanceData()
+	vengeanceSpellIcon = select(3,GetSpellInfo(vengeanceSpellName))
+	setDefaultVengeanceIcon()
 end
 
 local function checkIsTank()
-	local masteryIndex 
-	local tank = false
-	if playerClass == "DRUID" then
-		masteryIndex = GetPrimaryTalentTree()
-		if masteryIndex and masteryIndex == 2 then			
-			local form = GetShapeshiftFormID()
-			if form and form == BEAR_FORM then
-				tank = true
-			end
+	vengeanceSpellName = select(1,GetSpellInfo(KNOWN_VENGEANCE_SPELL_ID))
+	local skillType, spellId = GetSpellBookItemInfo(vengeanceSpellName)
+	if spellId ~= nil then
+		vengeanceSpellId = spellId
+		isTank = true
+		if playerClass == "DRUID" then
+			addon:UPDATE_SHAPESHIFT_FORM()
 		end
+		InitVengeanceData()
+	else 
+		isTank = false
 	end
-	if playerClass == "DEATHKNIGHT" then
-		masteryIndex = GetPrimaryTalentTree()
-		if masteryIndex and masteryIndex == 1 then
-			tank = true
-		end
-	end
-	if playerClass == "PALADIN" then
-		masteryIndex = GetPrimaryTalentTree()
-		if masteryIndex and masteryIndex == 2 then
-			tank = true
-		end
-	end
-	if playerClass == "WARRIOR" then
-		masteryIndex = GetPrimaryTalentTree()
-		if masteryIndex and masteryIndex == 3 then
-			tank = true
-		end
-	end
-	isTank = tank
 end
 
 local function getTooltipText(...)
@@ -85,18 +67,19 @@ local function getTooltipText(...)
 end
 
 local function GetVengeanceValue()
-		local n,_,icon,_,_,_,_,_,_,_,id = UnitAura("player", (GetSpellInfo(93098)));
-		if n then
-			LDBVengeance.icon = icon
-			addon.ScanTip:ClearLines()
-			addon.ScanTip:SetUnitBuff("player",n)
-			local tipText = getTooltipText(addon.ScanTip:GetRegions())
-			local vengval,percentmax,downtime
-			vengval = tonumber(string.match(tipText,"%d+"))
-			return vengval
-		else
-			return 0
-		end
+	local n,_,icon,_,_,_,_,_,_,_,_ = UnitAura("player", vengeanceSpellName);
+	if n then
+		LDBVengeance.icon = icon
+		addon.ScanTip:ClearLines()
+		addon.ScanTip:SetUnitBuff("player",n)
+		local tipText = getTooltipText(addon.ScanTip:GetRegions())
+		local vengval
+		vengval = tonumber(string.match(tipText,"%d+"))
+		return vengval
+	else
+		setDefaultVengeanceIcon()
+		return 0
+	end
 end
 
 function addon:UNIT_AURA(...)
@@ -107,6 +90,9 @@ function addon:UNIT_AURA(...)
 	if isTank then
 		local vengval = GetVengeanceValue()
 		if  vengval > 0 then
+			if maxVengeance == 0 then
+				addon:UNIT_MAXHEALTH("player")
+			end
 			local t = ""..vengval
 			if LDBVengeanceDB.showTotal then
 				t = t .. "/" .. maxVengeance
@@ -118,10 +104,10 @@ function addon:UNIT_AURA(...)
 			LDBVengeance.text = t
 		else
 			LDBVengeance.text = defaultText
-			setCorrectVengeanceIcon()
 		end
 	else 
 		LDBVengeance.text = defaultText
+		setDefaultVengeanceIcon()
 	end
 end
 
@@ -134,7 +120,6 @@ function addon:PLAYER_LOGIN()
 	self:RegisterEvent('UNIT_MAXHEALTH')
 	if playerClass == nil then
 		playerClass = select(2,UnitClass("player"))
-		setCorrectVengeanceIcon(true)
 		checkIsTank()
 	end
 	if playerClass == "DRUID" then
