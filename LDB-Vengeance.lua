@@ -1,3 +1,9 @@
+--[[
+	Credits
+	To Dridzt for Vengeance Status – which gave me an initial idea how I could detect the vengeance buff, and how to check for the value
+	To Shackleford for LDB-Threat – I had no clue how to write a data source
+]]--
+
 local addonName, ns = ...
 local addon = CreateFrame("Frame", addonName)
 local L = LibStub:GetLibrary("AceLocale-3.0"):GetLocale(addonName)
