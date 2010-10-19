@@ -27,11 +27,12 @@ local LDBVengeance = LibStub("LibDataBroker-1.1"):NewDataObject(
 local maxVengeance = 0
 local isTank = false
 
-addon.ScanTip = CreateFrame("GameTooltip","VengeanceStatusScanTip",nil,"GameTooltipTemplate")
+addon.ScanTip = CreateFrame("GameTooltip","LDBVengeanceScanTip",nil,"GameTooltipTemplate")
 addon.ScanTip:SetOwner(UIParent, "ANCHOR_NONE")
 
 local playerClass = nil
 local KNOWN_VENGEANCE_SPELL_ID = 93098
+local BEAR_FORM = BEAR_FORM
 
 local vengeanceSpellName = nil
 local vengeanceSpellIcon = nil
@@ -61,6 +62,7 @@ local function checkIsTank()
 	end
 end
 
+--[[ Copy from Vengeance Status ]]--
 local function getTooltipText(...)
 	local text = ""
 	for i=1,select("#",...) do
@@ -110,9 +112,12 @@ function addon:UNIT_AURA(...)
 			LDBVengeance.text = t
 		else
 			LDBVengeance.text = defaultText
+			setDefaultVengeanceIcon()
 		end
+		LDBVengeance.value = vengval
 	else 
 		LDBVengeance.text = defaultText
+		LDBVengeance.value = 0
 		setDefaultVengeanceIcon()
 	end
 end
