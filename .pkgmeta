@@ -10,6 +10,4 @@ ignore:
 tools-used:
     - libdatabroker-1-1
 
-manual-changelog: changelog.txt
-
 enable-nolib-creation: no

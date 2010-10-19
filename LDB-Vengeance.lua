@@ -2,7 +2,7 @@ local addonName, ns = ...
 local addon = CreateFrame("Frame", addonName)
 local L = LibStub:GetLibrary("AceLocale-3.0"):GetLocale(addonName)
 
-local version ="@project-version@"
+local addonversion ="@project-version@"
 
 local DBversion = "1"
 
@@ -166,7 +166,7 @@ function addon:UNIT_MAXHEALTH(...)
 end
 
 function LDBVengeance:OnTooltipShow()
-	self:AddLine(defaultText.." |cff00ff00"..L['0.0.1'].."|r")
+	self:AddLine(defaultText.." |cff00ff00"..addonversion.."|r")
 	self:AddLine("|cffffffff"..L['Displays the current, max and percentage value of your vengeance buff'].."|r")
 	if playerClass ~= "DRUID" and playerClass ~= "WARRIOR" and playerClass ~= "DEATHKNIGHT" and playerClass ~= "PALADIN" then
 		self:AddLine("|cffff0000"..L['Note: This addon does not make any sense for classes that don\'t have a Vengeance buff'].."|r")
