@@ -1,5 +1,8 @@
 local addonName, ns = ...
 local addon = CreateFrame("Frame", addonName)
+local L = LibStub:GetLibrary("AceLocale-3.0"):GetLocale(addonName)
+
+local version ="@project-version@"
 
 local DBversion = "1"
 
@@ -163,10 +166,10 @@ function addon:UNIT_MAXHEALTH(...)
 end
 
 function LDBVengeance:OnTooltipShow()
-	self:AddLine(defaultText.." |cff00ff000.0.1|r")
-	self:AddLine("|cffffffffDisplays the current, max and percentage value of your vengeance buff|r")
+	self:AddLine(defaultText.." |cff00ff00"..L['0.0.1'].."|r")
+	self:AddLine("|cffffffff"..L['Displays the current, max and percentage value of your vengeance buff'].."|r")
 	if playerClass ~= "DRUID" and playerClass ~= "WARRIOR" and playerClass ~= "DEATHKNIGHT" and playerClass ~= "PALADIN" then
-		self:AddLine("|cffff0000Note: This addon does not make any sense for classes that don't have a Vengeance buff|r")
+		self:AddLine("|cffff0000"..L['Note: This addon does not make any sense for classes that don\'t have a Vengeance buff'].."|r")
 	end
 end
 
@@ -179,13 +182,13 @@ end
 
 local options = {
 	type ="group",
-	name = "|cffC79C6ELDB|r-Vengeance",
+	name = defaultText,
 	handler = LDBVengeance,
 	childGroups = "tree",
 	args = {
 		header1 = {
 			type = "description",
-			name = "v0.1",
+			name = L["Some useful description"],
 			order = 0,
 			width = "full",
 			cmdHidden = true
@@ -200,13 +203,13 @@ local options = {
 		show = {
 			type = "group",
 			inline = true,
-			name = "Display options",
+			name = L["Display options"],
 			order = 10,
 			args = {
 				showMax = {
 					type = "toggle",
 					name = "Enabled",
-					desc = "Show the maximum possible value",
+					desc = L["Show the maximum possible value"],
 					order = 1,
 					set = function (info, value)
 						LDBVengeanceDB.showMax = value
@@ -216,7 +219,7 @@ local options = {
 				showPercent = {
 					type = "toggle",
 					name = "Enabled",
-					desc = "Show percentage value",
+					desc = L["Show percentage value"],
 					order = 1,
 					set = function (info, value)
 						LDBVengeanceDB.showPercent = value

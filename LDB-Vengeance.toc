@@ -9,8 +9,6 @@
 ## Version: 0.1.0
 ## SavedVariables: LDBVengeanceDB
 
-## Notes: Vengeance display for all kind of tanks.
-
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: Delayed
 
@@ -18,5 +16,7 @@
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 libs\LibDataBroker-1.1.lua
+
+Locales.lua
 
 LDB-Vengeance.lua
