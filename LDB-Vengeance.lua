@@ -7,11 +7,12 @@ local addonversion ="@project-version@"
 local DBversion = "1"
 
 local defaultText = "|cffC79C6ELDB|r-Vengeance"
+local defaultIcon = "Interface\\Icons\\Ability_Paladin_ShieldofVengeance"
 
 local LDBVengeance = LibStub("LibDataBroker-1.1"):NewDataObject(
 	addonName, 
 	{ 
-		icon = "Interface\\Icons\\Ability_Paladin_ShieldofVengeance", 
+		icon = defaultIcon, 
 		type = "data source",
 		text = defaultText 
 	}
@@ -23,15 +24,18 @@ local isTank = false
 addon.ScanTip = CreateFrame("GameTooltip","VengeanceStatusScanTip",nil,"GameTooltipTemplate")
 addon.ScanTip:SetOwner(UIParent, "ANCHOR_NONE")
 
-local playerClass = ""
+local playerClass = nil
 local KNOWN_VENGEANCE_SPELL_ID = 93098
 
-local function getCorrectVengeanceIcon()
-	if playerClass ~= "" then
+local function setCorrectVengeanceIcon(first)
+	if defaultIcon ~= nil and not first then
+		LDBVengeance.icon = defaultIcon
+	else
 		local name, _, _, _, _, _, _, _, _ = GetSpellInfo(KNOWN_VENGEANCE_SPELL_ID)
 		local _, _, icon, _, _, _, _, _, _ = GetSpellInfo(name)
 		if icon then
 			LDBVengeance.icon = icon
+			defaultIcon = icon
 		end
 	end
 end
@@ -97,6 +101,9 @@ end
 
 function addon:UNIT_AURA(...)
 	local unit = ...;
+	if unit ~= "player" then
+		return
+	end
 	if isTank then
 		local vengval = GetVengeanceValue()
 		if  vengval > 0 then
@@ -111,6 +118,7 @@ function addon:UNIT_AURA(...)
 			LDBVengeance.text = t
 		else
 			LDBVengeance.text = defaultText
+			setCorrectVengeanceIcon()
 		end
 	else 
 		LDBVengeance.text = defaultText
@@ -118,18 +126,23 @@ function addon:UNIT_AURA(...)
 end
 
 function addon:PLAYER_LOGIN()
+	if (not LDBVengeanceDB or not LDBVengeanceDB.dbVersion or LDBVengeanceDB.dbVersion < DBversion) then
+		addon:setDefaults()		
+	end
 	self:RegisterEvent('UNIT_AURA')
 	self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
 	self:RegisterEvent('UNIT_MAXHEALTH')
-	if playerClass == "" then
-		_ , playerClass = UnitClass("player")
-		getCorrectVengeanceIcon()
+	if playerClass == nil then
+		playerClass = select(2,UnitClass("player"))
+		setCorrectVengeanceIcon(true)
 		checkIsTank()
 	end
 	if playerClass == "DRUID" then
 		self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 	end
-	LDBVengeance.text = defaultText
+	if isTank then
+		self:UNIT_MAXHEALTH("player")
+	end
 end
 
 function addon:ACTIVE_TALENT_GROUP_CHANGED()
@@ -148,13 +161,7 @@ end
 function addon:ADDON_LOADED(name, event)
 	if(name == addonName) then
 		self:UnregisterEvent(event)
-		--Set up defaults
-		if (not LDBVengeanceDB or not LDBVengeanceDB.dbVersion or LDBVengeanceDB.dbVersion < DBversion) then
-			addon:setDefaults()
-		return
-		end
 		self:PLAYER_LOGIN()
-		self:UNIT_MAXHEALTH("player")
 	end
 end
 
