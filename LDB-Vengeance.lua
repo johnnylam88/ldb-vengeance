@@ -47,18 +47,25 @@ local function InitVengeanceData()
 	setDefaultVengeanceIcon()
 end
 
-local function checkIsTank()
+function addon:checkIsTank()
 	vengeanceSpellName = select(1,GetSpellInfo(KNOWN_VENGEANCE_SPELL_ID))
 	local skillType, spellId = GetSpellBookItemInfo(vengeanceSpellName)
 	if spellId ~= nil then
 		vengeanceSpellId = spellId
 		isTank = true
-		if playerClass == "DRUID" then
-			addon:UPDATE_SHAPESHIFT_FORM()
+		self:RegisterEvent('UNIT_AURA')
+		self:RegisterEvent('UNIT_MAXHEALTH')
+		if playerClass == "DRUID" then -- for really checking those feral druids
+			self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 		end
 		InitVengeanceData()
 	else 
 		isTank = false
+		self:UnregisterEvent('UNIT_AURA')
+		self:UnregisterEvent('UNIT_MAXHEALTH')
+		if playerClass == "DRUID" then -- for really checking those feral druids
+			self:UnregisterEvent("UPDATE_SHAPESHIFT_FORM")
+		end
 	end
 end
 
@@ -87,6 +94,20 @@ local function GetVengeanceValue()
 	else
 		setDefaultVengeanceIcon()
 		return 0
+	end
+end
+
+local function isPotentialVengeanceClasss()
+	local potentialTanks = {
+		PALADIN = true,
+		WARRIOR = true,
+		DRUID = true,
+		DEATHKNIGHT = true,
+	}
+	if potentialTanks[playerClass] then
+		return true
+	else
+		return false
 	end
 end
 
@@ -126,32 +147,27 @@ function addon:PLAYER_LOGIN()
 	if (not LDBVengeanceDB or not LDBVengeanceDB.dbVersion or LDBVengeanceDB.dbVersion < DBversion) then
 		addon:setDefaults()		
 	end
-	self:RegisterEvent('UNIT_AURA')
-	self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
-	self:RegisterEvent('UNIT_MAXHEALTH')
 	if playerClass == nil then
 		playerClass = select(2,UnitClass("player"))
-		checkIsTank()
 	end
-	if playerClass == "DRUID" then
-		self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-	end
-	if isTank then
-		self:UNIT_MAXHEALTH("player")
+	if isPotentialVengeanceClasss() then
+		self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+		self:checkIsTank()
+		self:UNIT_MAXHEALTH("player") -- no real harm done if spec is not tank
 	end
 end
 
 function addon:ACTIVE_TALENT_GROUP_CHANGED()
-	checkIsTank()
+	self:checkIsTank()
 end
 
 function addon:UPDATE_SHAPESHIFT_FORM()
 	local form = GetShapeshiftFormID()
-	if form and form == BEAR_FORM then
-		isTank = true
-	else
-		isTank = false
-	end
+	--if form and form == BEAR_FORM then
+	--	isTank = true
+	--else
+	--	isTank = false
+	--end
 end
 
 function addon:ADDON_LOADED(name, event)
@@ -171,7 +187,7 @@ end
 function LDBVengeance:OnTooltipShow()
 	self:AddLine(defaultText.." |cff00ff00"..addonversion.."|r")
 	self:AddLine("|cffffffff"..L['Displays the current, max and percentage value of your vengeance buff'].."|r")
-	if playerClass ~= "DRUID" and playerClass ~= "WARRIOR" and playerClass ~= "DEATHKNIGHT" and playerClass ~= "PALADIN" then
+	if not isPotentialVengeanceClasss() then
 		self:AddLine("|cffff0000"..L['Note: This addon does not make any sense for classes that don\'t have a Vengeance buff'].."|r")
 	end
 end
