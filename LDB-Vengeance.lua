@@ -123,7 +123,7 @@ function addon:UNIT_AURA(...)
 				addon:UNIT_MAXHEALTH("player")
 			end
 			local t = ""..vengval
-			if LDBVengeanceDB.showTotal then
+			if LDBVengeanceDB.showMax then
 				t = t .. "/" .. maxVengeance
 			end
 			if LDBVengeanceDB.showPercent then
@@ -132,12 +132,12 @@ function addon:UNIT_AURA(...)
 			end			
 			LDBVengeance.text = t
 		else
-			LDBVengeance.text = defaultText
+			LDBVengeance.text = LDBVengeanceDB.defaultText
 			setDefaultVengeanceIcon()
 		end
 		LDBVengeance.value = vengval
 	else 
-		LDBVengeance.text = defaultText
+		LDBVengeance.text = LDBVengeanceDB.defaultText
 		LDBVengeance.value = 0
 		setDefaultVengeanceIcon()
 	end
@@ -155,6 +155,7 @@ function addon:PLAYER_LOGIN()
 		self:checkIsTank()
 		self:UNIT_MAXHEALTH("player") -- no real harm done if spec is not tank
 	end
+	LDBVengeance.text = LDBVengeanceDB.defaultText
 end
 
 function addon:ACTIVE_TALENT_GROUP_CHANGED()
@@ -194,9 +195,10 @@ end
 
 function addon:setDefaults()
 	LDBVengeanceDB = LDBVengeanceDB or {}
-	LDBVengeanceDB.showTotal = LDBVengeanceDB.showTotal or 1
+	LDBVengeanceDB.showMax = LDBVengeanceDB.showMax or 1
 	LDBVengeanceDB.showPercent = LDBVengeanceDB.showPercent or 1
 	LDBVengeanceDB.dbVersion = DBversion
+	LDBVengeanceDB.defaultText = LDBVengeanceDB.defaultText or defaultText
 end
 
 local options = {
@@ -219,33 +221,42 @@ local options = {
 			width = "full",
 			cmdHidden = true
 		},
-		show = {
-			type = "group",
-			inline = true,
-			name = L["Display options"],
-			order = 10,
-			args = {
-				showMax = {
-					type = "toggle",
-					name = "Enabled",
-					desc = L["Show the maximum possible value"],
-					order = 1,
-					set = function (info, value)
-						LDBVengeanceDB.showMax = value
-					end,
-					get = function() return LDBVengeanceDB.showMax end
-				},
-				showPercent = {
-					type = "toggle",
-					name = "Enabled",
-					desc = L["Show percentage value"],
-					order = 1,
-					set = function (info, value)
-						LDBVengeanceDB.showPercent = value
-					end,
-					get = function() return LDBVengeanceDB.showPercent end
-				},
-			},
+		showMax = {
+			type = "toggle",
+			name = L["Show the maximum possible value"],
+			width = "full",
+			order = 2,
+			set = function (info, value)
+				LDBVengeanceDB.showMax = value
+			end,
+			get = function() return LDBVengeanceDB.showMax end
+		},
+		showPercent = {
+			type = "toggle",
+			name = L["Show percentage value"],
+			width = "full",
+			order = 3,
+			set = function (info, value)
+				LDBVengeanceDB.showPercent = value
+			end,
+			get = function() return LDBVengeanceDB.showPercent end
+		},
+		defaultText = {
+			type = "input",
+			name = L["Default data source text"],
+			width = "double",
+			order = 4,
+			set = function (info,value)
+				LDBVengeanceDB.defaultText = value
+			end,
+			get = function() return LDBVengeanceDB.defaultText end
+		},
+		resetToDefaultText = {
+			type = "execute",
+			name = L["Reset"],
+			desc = L["Reset default text (|cffC79C6ELDB|r-Vengeance)"],
+			order = 5,
+			func = function() LDBVengeanceDB.defaultText = defaultText end,
 		},
 	},
 }
