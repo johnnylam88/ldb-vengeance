@@ -19,7 +19,7 @@ libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 Libs\AceLocale-3.0\AceLocale-3.0.xml
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfigRegistry-3.0\AceConfigRegistry-3.0.xml
-Libs\AceConfigDialog-3.0\AceConfigRegistryDialog-3.0.xml
+Libs\AceConfigDialog-3.0\AceConfigDialog-3.0.xml
 libs\LibDataBroker-1.1.lua
 
 Locales.lua
