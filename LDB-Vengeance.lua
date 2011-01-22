@@ -33,6 +33,7 @@ addon.ScanTip:SetOwner(UIParent, "ANCHOR_NONE")
 local playerClass = nil
 local KNOWN_VENGEANCE_SPELL_ID = 93098
 local BEAR_FORM = BEAR_FORM
+local HEALTH_PER_STAMINA = HEALTH_PER_STAMINA
 
 local vengeanceSpellName = nil
 local vengeanceSpellIcon = nil
@@ -181,7 +182,10 @@ end
 function addon:UNIT_MAXHEALTH(...)
 	local unit = ...;
 	if unit == "player" then
-		maxVengeance = floor(0.1*UnitHealthMax("player"))
+		local maxHealth = UnitHealthMax("player")
+		local healthPerStamina = HEALTH_PER_STAMINA[UnitLevel("player")] or HEALTH_PER_STAMINA.default
+		local _, effectiveStat, _, _ = UnitStat("player", 3)
+		maxVengeance = (maxHealth-effectiveStat*healthPerStamina)*0.1 + effectiveStat
 	end
 end
 
