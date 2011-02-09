@@ -183,9 +183,11 @@ function addon:UNIT_MAXHEALTH(...)
 	local unit = ...;
 	if unit == "player" then
 		local maxHealth = UnitHealthMax("player")
-		local healthPerStamina = HEALTH_PER_STAMINA[UnitLevel("player")] or HEALTH_PER_STAMINA.default
 		local _, effectiveStat, _, _ = UnitStat("player", 3)
-		maxVengeance = (maxHealth-effectiveStat*healthPerStamina)*0.1 + effectiveStat
+		local baseStam = min(20, effectiveStat);
+		local moreStam = effectiveStat - baseStam;
+		local moreHealth = (baseStam + (moreStam*UnitHPPerStamina("player")))*GetUnitMaxHealthModifier("player")
+		maxVengeance = ceil((maxHealth-moreHealth)*0.1) + moreStam
 	end
 end
 
