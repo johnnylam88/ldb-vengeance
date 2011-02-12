@@ -13,5 +13,3 @@ ignore:
 
 tools-used:
     - libdatabroker-1-1
-
-enable-nolib-creation: no
