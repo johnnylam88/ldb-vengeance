@@ -10,7 +10,7 @@ local L = LibStub:GetLibrary("AceLocale-3.0"):GetLocale(addonName)
 
 local addonversion ="@project-version@"
 
-local DBversion = "1"
+local DBversion = "2"
 
 local defaultText = "|cffC79C6ELDB|r-Vengeance"
 local defaultIcon = "Interface\\Icons\\Ability_Paladin_ShieldofVengeance"
@@ -20,7 +20,7 @@ local LDBVengeance = LibStub("LibDataBroker-1.1"):NewDataObject(
 	{ 
 		icon = defaultIcon, 
 		type = "data source",
-		text = defaultText 
+		text = defaultText
 	}
 )
 
@@ -136,17 +136,25 @@ function addon:UNIT_AURA(...)
 			LDBVengeance.text = LDBVengeanceDB.defaultText
 			setDefaultVengeanceIcon()
 		end
-		LDBVengeance.value = vengval
+		if LDBVengeanceDB.provideValue then
+			LDBVengeance.value = vengval
+		else
+			LDBVengeance.value = false
+		end
 	else 
 		LDBVengeance.text = LDBVengeanceDB.defaultText
-		LDBVengeance.value = 0
+		if LDBVengeanceDB.provideValue then
+			LDBVengeance.value = 0
+		else
+			LDBVengeance.value = false
+		end
 		setDefaultVengeanceIcon()
 	end
 end
 
 function addon:PLAYER_LOGIN()
 	if (not LDBVengeanceDB or not LDBVengeanceDB.dbVersion or LDBVengeanceDB.dbVersion < DBversion) then
-		addon:setDefaults()		
+		addon:setDefaults()
 	end
 	if playerClass == nil then
 		playerClass = select(2,UnitClass("player"))
@@ -205,6 +213,7 @@ function addon:setDefaults()
 	LDBVengeanceDB.showPercent = LDBVengeanceDB.showPercent or 1
 	LDBVengeanceDB.dbVersion = DBversion
 	LDBVengeanceDB.defaultText = LDBVengeanceDB.defaultText or defaultText
+	LDBVengeanceDB.provideValue = LDBVengeanceDB.provideValue or 1
 end
 
 local options = {
@@ -247,11 +256,21 @@ local options = {
 			end,
 			get = function() return LDBVengeanceDB.showPercent end
 		},
+		provideValue = {
+			type = "toggle",
+			name = L["Provide a 'value' for the LDB display"],
+			width = "full",
+			order = 4,
+			set = function (info, value)
+				LDBVengeanceDB.provideValue = value
+			end,
+			get = function() return LDBVengeanceDB.provideValue end
+		},
 		defaultText = {
 			type = "input",
 			name = L["Default data source text"],
 			width = "double",
-			order = 4,
+			order = 5,
 			set = function (info,value)
 				LDBVengeanceDB.defaultText = value
 			end,
@@ -261,7 +280,7 @@ local options = {
 			type = "execute",
 			name = L["Reset"],
 			desc = L["Reset default text (|cffC79C6ELDB|r-Vengeance)"],
-			order = 5,
+			order = 6,
 			func = function() LDBVengeanceDB.defaultText = defaultText end,
 		},
 	},
