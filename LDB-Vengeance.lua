@@ -61,7 +61,7 @@ function addon:checkIsTank()
 		end
 		InitVengeanceData()
 	else 
-		isTank = false
+		isTank = false		
 		self:UnregisterEvent('UNIT_AURA')
 		self:UnregisterEvent('UNIT_MAXHEALTH')
 		if playerClass == "DRUID" then -- for really checking those feral druids
@@ -169,6 +169,7 @@ end
 
 function addon:ACTIVE_TALENT_GROUP_CHANGED()
 	self:checkIsTank()
+	self:UNIT_AURA('player')
 end
 
 function addon:UPDATE_SHAPESHIFT_FORM()
