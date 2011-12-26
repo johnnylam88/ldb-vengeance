@@ -128,7 +128,7 @@ function addon:UNIT_AURA(...)
 				t = t .. "/" .. maxVengeance
 			end
 			if LDBVengeanceDB.showPercent then
-				local perc = vengval / maxVengeance * 100
+				local perc = vengval / maxVengeance * 100				
 				t = string.format("%s (%.2f%%)",t,perc)
 			end			
 			LDBVengeance.text = t
@@ -196,7 +196,13 @@ function addon:UNIT_MAXHEALTH(...)
 		local baseStam = min(20, effectiveStat);
 		local moreStam = effectiveStat - baseStam;
 		local moreHealth = (baseStam + (moreStam*UnitHPPerStamina("player")))*GetUnitMaxHealthModifier("player")
-		maxVengeance = ceil((maxHealth-moreHealth)*0.1) + moreStam
+		local baseHealth = 0
+		if(select(2,UnitRace("player")) == "Tauren") then --Endurance
+			baseHealth = min(maxHealth-moreHealth,43480)
+		else
+			baseHealth = min(maxHealth-moreHealth,41409)
+		end		
+		maxVengeance = ceil(baseHealth*0.1) + moreStam
 	end
 end
 
