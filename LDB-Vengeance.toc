@@ -2,7 +2,7 @@
 ## Title: |cffC79C6ELDB|r-Vengeance
 ## X-BrokerName: Vengeance
 ## Notes: Vengeance module for Broker displays.
-## Notes-deDE: Rache Modul für DataBroker
+## Notes-deDE: Rache Modul für DataBroker 
 ## Author: @project-author@
 ## OptionalDeps: Ace3
 ## X-Embeds: LibDataBroker-1.1
