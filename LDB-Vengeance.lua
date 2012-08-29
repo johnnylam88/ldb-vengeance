@@ -24,7 +24,6 @@ local LDBVengeance = LibStub("LibDataBroker-1.1"):NewDataObject(
 	}
 )
 
-local maxVengeance = 0
 local isTank = false
 
 addon.ScanTip = CreateFrame("GameTooltip","LDBVengeanceScanTip",nil,"GameTooltipTemplate")
@@ -55,7 +54,6 @@ function addon:checkIsTank()
 		vengeanceSpellId = spellId
 		isTank = true
 		self:RegisterEvent('UNIT_AURA')
-		self:RegisterEvent('UNIT_MAXHEALTH')
 		if playerClass == "DRUID" then -- for really checking those feral druids
 			self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 		end
@@ -63,7 +61,6 @@ function addon:checkIsTank()
 	else 
 		isTank = false		
 		self:UnregisterEvent('UNIT_AURA')
-		self:UnregisterEvent('UNIT_MAXHEALTH')
 		if playerClass == "DRUID" then -- for really checking those feral druids
 			self:UnregisterEvent("UPDATE_SHAPESHIFT_FORM")
 		end
@@ -120,18 +117,7 @@ function addon:UNIT_AURA(...)
 	if isTank then
 		local vengval = GetVengeanceValue()
 		if  vengval > 0 then
-			if maxVengeance == 0 then
-				addon:UNIT_MAXHEALTH("player")
-			end
-			local t = ""..vengval
-			if LDBVengeanceDB.showMax then
-				t = t .. "/" .. maxVengeance
-			end
-			if LDBVengeanceDB.showPercent then
-				local perc = vengval / maxVengeance * 100				
-				t = string.format("%s (%.2f%%)",t,perc)
-			end			
-			LDBVengeance.text = t
+			LDBVengeance.text = vengval
 		else
 			LDBVengeance.text = LDBVengeanceDB.defaultText
 			setDefaultVengeanceIcon()
@@ -162,7 +148,6 @@ function addon:PLAYER_LOGIN()
 	if isPotentialVengeanceClasss() then
 		self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
 		self:checkIsTank()
-		self:UNIT_MAXHEALTH("player") -- no real harm done if spec is not tank
 	end
 	LDBVengeance.text = LDBVengeanceDB.defaultText
 end
@@ -188,27 +173,9 @@ function addon:ADDON_LOADED(name, event)
 	end
 end
 
-function addon:UNIT_MAXHEALTH(...)
-	local unit = ...;
-	if unit == "player" then
-		local maxHealth = UnitHealthMax("player")
-		local _, effectiveStat, _, _ = UnitStat("player", 3)
-		local baseStam = min(20, effectiveStat);
-		local moreStam = effectiveStat - baseStam;
-		local moreHealth = (baseStam + (moreStam*UnitHPPerStamina("player")))*GetUnitMaxHealthModifier("player")
-		local baseHealth = 0
-		if(select(2,UnitRace("player")) == "Tauren") then --Endurance
-			baseHealth = min(maxHealth-moreHealth,43480)
-		else
-			baseHealth = min(maxHealth-moreHealth,41409)
-		end		
-		maxVengeance = ceil(baseHealth*0.1) + moreStam
-	end
-end
-
 function LDBVengeance:OnTooltipShow()
 	self:AddLine(defaultText.." |cff00ff00"..addonversion.."|r")
-	self:AddLine("|cffffffff"..L['Displays the current, max and percentage value of your vengeance buff'].."|r")
+	self:AddLine("|cffffffff"..L['Displays the current value of your vengeance buff'].."|r")
 	if not isPotentialVengeanceClasss() then
 		self:AddLine("|cffff0000"..L['Note: This addon does not make any sense for classes that don\'t have a Vengeance buff'].."|r")
 	end
@@ -216,8 +183,6 @@ end
 
 function addon:setDefaults()
 	LDBVengeanceDB = LDBVengeanceDB or {}
-	LDBVengeanceDB.showMax = LDBVengeanceDB.showMax or 1
-	LDBVengeanceDB.showPercent = LDBVengeanceDB.showPercent or 1
 	LDBVengeanceDB.dbVersion = DBversion
 	LDBVengeanceDB.defaultText = LDBVengeanceDB.defaultText or defaultText
 	LDBVengeanceDB.provideValue = LDBVengeanceDB.provideValue or 1
@@ -243,31 +208,11 @@ local options = {
 			width = "full",
 			cmdHidden = true
 		},
-		showMax = {
-			type = "toggle",
-			name = L["Show the maximum possible value"],
-			width = "full",
-			order = 2,
-			set = function (info, value)
-				LDBVengeanceDB.showMax = value
-			end,
-			get = function() return LDBVengeanceDB.showMax end
-		},
-		showPercent = {
-			type = "toggle",
-			name = L["Show percentage value"],
-			width = "full",
-			order = 3,
-			set = function (info, value)
-				LDBVengeanceDB.showPercent = value
-			end,
-			get = function() return LDBVengeanceDB.showPercent end
-		},
 		provideValue = {
 			type = "toggle",
 			name = L["Provide a 'value' for the LDB display"],
 			width = "full",
-			order = 4,
+			order = 2,
 			set = function (info, value)
 				LDBVengeanceDB.provideValue = value
 			end,
@@ -277,7 +222,7 @@ local options = {
 			type = "input",
 			name = L["Default data source text"],
 			width = "double",
-			order = 5,
+			order = 3,
 			set = function (info,value)
 				LDBVengeanceDB.defaultText = value
 			end,
@@ -287,7 +232,7 @@ local options = {
 			type = "execute",
 			name = L["Reset"],
 			desc = L["Reset default text (|cffC79C6ELDB|r-Vengeance)"],
-			order = 6,
+			order = 4,
 			func = function() LDBVengeanceDB.defaultText = defaultText end,
 		},
 	},

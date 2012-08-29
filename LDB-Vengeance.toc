@@ -1,4 +1,4 @@
-## Interface: 40300
+## Interface: 50001
 ## Title: |cffC79C6ELDB|r-Vengeance
 ## X-BrokerName: Vengeance
 ## Notes: Vengeance module for Broker displays.
