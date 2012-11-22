@@ -101,6 +101,7 @@ local function isPotentialVengeanceClasss()
 		WARRIOR = true,
 		DRUID = true,
 		DEATHKNIGHT = true,
+		MONK = true,
 	}
 	if potentialTanks[playerClass] then
 		return true
