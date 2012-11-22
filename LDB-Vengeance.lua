@@ -25,168 +25,104 @@ local LDBVengeance = LibStub("LibDataBroker-1.1"):NewDataObject(
 )
 
 local isTank = false
+local playerClass = select(2, UnitClass("player"))
+local vengeanceSpellName = GetSpellInfo(93098)	-- known Vengeance spell ID
 
-addon.ScanTip = CreateFrame("GameTooltip","LDBVengeanceScanTip",nil,"GameTooltipTemplate")
-addon.ScanTip:SetOwner(UIParent, "ANCHOR_NONE")
+local GetSpellBookItemInfo, UnitAura = GetSpellBookItemInfo, UnitAura
 
-local playerClass = nil
-local KNOWN_VENGEANCE_SPELL_ID = 93098
-local BEAR_FORM = BEAR_FORM
-local HEALTH_PER_STAMINA = HEALTH_PER_STAMINA
+-- Table of classes with a tanking specialization.
+local tankClass = {
+	DEATHKNIGHT = true,
+	DRUID = true,
+	MONK = true,
+	PALADIN = true,
+	WARRIOR = true,
+}
 
-local vengeanceSpellName = nil
-local vengeanceSpellIcon = nil
-local vengeanceSpellId = nil
+-- Set the LDB display values.
+function addon:SetLDBDisplay(text, icon)
+	LDBVengeance.text = text
+	LDBVengeance.icon = icon
 
-local function setDefaultVengeanceIcon()
-	LDBVengeance.icon = defaultIcon
+	local value = tonumber(text) or 0
+	if LDBVengeanceDB.provideValue then
+		LDBVengeance.value = value
+	else
+		LDBVengeance.value = false
+	end
 end
 
-local function InitVengeanceData()
-	vengeanceSpellIcon = select(3,GetSpellInfo(vengeanceSpellName))
-	setDefaultVengeanceIcon()
-end
-
-function addon:checkIsTank()
-	vengeanceSpellName = select(1,GetSpellInfo(KNOWN_VENGEANCE_SPELL_ID))
-	local skillType, spellId = GetSpellBookItemInfo(vengeanceSpellName)
-	if spellId ~= nil then
-		vengeanceSpellId = spellId
+function addon:UpdateTankStatus()
+	-- Player is considered to be in a tanking specialization if the passive spell
+	-- "Vengeance" is present in the player's spellbook.
+	local spellId = select(2, GetSpellBookItemInfo(vengeanceSpellName))
+	if spellId then
 		isTank = true
 		self:RegisterEvent('UNIT_AURA')
-		if playerClass == "DRUID" then -- for really checking those feral druids
-			self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-		end
-		InitVengeanceData()
-	else 
+	else
 		isTank = false		
 		self:UnregisterEvent('UNIT_AURA')
-		if playerClass == "DRUID" then -- for really checking those feral druids
-			self:UnregisterEvent("UPDATE_SHAPESHIFT_FORM")
-		end
 	end
 end
 
---[[ Copy from Vengeance Status ]]--
-local function getTooltipText(...)
-	local text = ""
-	for i=1,select("#",...) do
-		local rgn = select(i,...)
-		if rgn and rgn:GetObjectType() == "FontString" then
-			text = text .. (rgn:GetText() or "")
-		end
-	end
-	return text == "" and "0" or text
+function addon:GetVengeance()
+	local _, _, icon, _, _, _, _, _, _, _, _, _, _, value = UnitAura("player", vengeanceSpellName)
+
+	icon = icon or LDBVengeance.icon or defaultIcon
+	value = value or 0
+
+	return value, icon
 end
 
-local function GetVengeanceValue()
-	local n,_,icon,_,_,_,_,_,_,_,_ = UnitAura("player", vengeanceSpellName);
-	if n then
-		LDBVengeance.icon = icon
-		addon.ScanTip:ClearLines()
-		addon.ScanTip:SetUnitBuff("player",n)
-		local tipText = getTooltipText(addon.ScanTip:GetRegions())
-		local vengval
-		vengval = tonumber(string.match(tipText,"%d+"))
-		return vengval
-	else
-		setDefaultVengeanceIcon()
-		return 0
+function addon:UNIT_AURA(event, unit)
+	if unit == "player" and isTank then
+		self:SetLDBDisplay(self:GetVengeance())
 	end
 end
 
-local function isPotentialVengeanceClasss()
-	local potentialTanks = {
-		PALADIN = true,
-		WARRIOR = true,
-		DRUID = true,
-		DEATHKNIGHT = true,
-		MONK = true,
-	}
-	if potentialTanks[playerClass] then
-		return true
-	else
-		return false
-	end
+function addon:ACTIVE_TALENT_GROUP_CHANGED()
+	self:UpdateTankStatus()
+	self:SetLDBDisplay(self:GetVengeance())
 end
 
-function addon:UNIT_AURA(...)
-	local unit = ...;
-	if unit ~= "player" then
-		return
-	end
-	if isTank then
-		local vengval = GetVengeanceValue()
-		if  vengval > 0 then
-			LDBVengeance.text = vengval
-		else
-			LDBVengeance.text = LDBVengeanceDB.defaultText
-			setDefaultVengeanceIcon()
-		end
-		if LDBVengeanceDB.provideValue then
-			LDBVengeance.value = vengval
-		else
-			LDBVengeance.value = false
-		end
-	else 
-		LDBVengeance.text = LDBVengeanceDB.defaultText
-		if LDBVengeanceDB.provideValue then
-			LDBVengeance.value = 0
-		else
-			LDBVengeance.value = false
-		end
-		setDefaultVengeanceIcon()
+function addon:UpgradeSavedVariables()
+	-- Upgrade saved variables if necessary.
+	if (not LDBVengeanceDB or not LDBVengeanceDB.dbVersion or LDBVengeanceDB.dbVersion < DBversion) then
+		LDBVengeanceDB = LDBVengeanceDB or {}
+		LDBVengeanceDB.dbVersion = DBversion
+		LDBVengeanceDB.defaultText = LDBVengeanceDB.defaultText or defaultText
+		LDBVengeanceDB.provideValue = LDBVengeanceDB.provideValue or 1
 	end
 end
 
 function addon:PLAYER_LOGIN()
-	if (not LDBVengeanceDB or not LDBVengeanceDB.dbVersion or LDBVengeanceDB.dbVersion < DBversion) then
-		addon:setDefaults()
-	end
-	if playerClass == nil then
-		playerClass = select(2,UnitClass("player"))
-	end
-	if isPotentialVengeanceClasss() then
+	-- At this point, the saved variables are loaded.
+	self:UpgradeSavedVariables()
+
+	-- Set the default LDB display values when entering the world.
+	self:SetLDBDisplay(LDBVengeanceDB.defaultText, defaultIcon)
+
+	if tankClass[playerClass] then
 		self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
-		self:checkIsTank()
+		self:UpdateTankStatus()
+		self:SetLDBDisplay(self:GetVengeance())
 	end
-	LDBVengeance.text = LDBVengeanceDB.defaultText
 end
 
-function addon:ACTIVE_TALENT_GROUP_CHANGED()
-	self:checkIsTank()
-	self:UNIT_AURA('player')
-end
-
-function addon:UPDATE_SHAPESHIFT_FORM()
-	local form = GetShapeshiftFormID()
-	--if form and form == BEAR_FORM then
-	--	isTank = true
-	--else
-	--	isTank = false
-	--end
-end
-
-function addon:ADDON_LOADED(name, event)
-	if(name == addonName) then
+function addon:ADDON_LOADED(event, name)
+	if name == addonName then
+		-- Unregister ADDON_LOADED event so that this handler only runs once.
 		self:UnregisterEvent(event)
-		self:PLAYER_LOGIN()
+		self:PLAYER_LOGIN(event)
 	end
 end
 
 function LDBVengeance:OnTooltipShow()
 	self:AddLine(defaultText.." |cff00ff00"..addonversion.."|r")
 	self:AddLine("|cffffffff"..L['Displays the current value of your vengeance buff'].."|r")
-	if not isPotentialVengeanceClasss() then
+	if not tankClass[playerClass] then
 		self:AddLine("|cffff0000"..L['Note: This addon does not make any sense for classes that don\'t have a Vengeance buff'].."|r")
 	end
-end
-
-function addon:setDefaults()
-	LDBVengeanceDB = LDBVengeanceDB or {}
-	LDBVengeanceDB.dbVersion = DBversion
-	LDBVengeanceDB.defaultText = LDBVengeanceDB.defaultText or defaultText
-	LDBVengeanceDB.provideValue = LDBVengeanceDB.provideValue or 1
 end
 
 local options = {
@@ -259,5 +195,11 @@ end
 
 LDBVengeance.optionsFrame = AceDlg:AddToBlizOptions("LDB_Vengeance", "Vengeance", "Broker")
 
+local function EventHandler(self, event, ...)
+	if self[event] then
+		self[event](self, event, ...)
+	end
+end
+
 addon:RegisterEvent(IsAddOnLoaded('AddonLoader') and 'ADDON_LOADED' or 'PLAYER_LOGIN')
-addon:SetScript('OnEvent', function(self, event, ...) self[event](self, ..., event) end)
+addon:SetScript('OnEvent', EventHandler)
