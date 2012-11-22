@@ -125,6 +125,12 @@ function LDBVengeance:OnTooltipShow()
 	end
 end
 
+function LDBVengeance:OnClick(msg)
+	if msg == "RightButton" then
+		InterfaceOptionsFrame_OpenToCategory(addon.optionsFrame)
+	end
+end
+
 local options = {
 	type ="group",
 	name = defaultText,
@@ -175,25 +181,8 @@ local options = {
 	},
 }
 
-local AceCfg = LibStub("AceConfig-3.0")
-local AceCfgReg = LibStub("AceConfigRegistry-3.0")
-local AceDlg = LibStub("AceConfigDialog-3.0")
-
-AceCfg:RegisterOptionsTable("LDB_Vengeance", options)
-
-local brokerOptions = AceCfgReg:GetOptionsTable("Broker", "dialog", "LibDataBroker-1.1")
-if (not brokerOptions) then
-	brokerOptions = {
-		type = "group",
-		name = "Broker",
-		args = {
-		}
-	}
-	AceCfg:RegisterOptionsTable("Broker", brokerOptions)
-	AceDlg:AddToBlizOptions("Broker", "Broker")
-end
-
-LDBVengeance.optionsFrame = AceDlg:AddToBlizOptions("LDB_Vengeance", "Vengeance", "Broker")
+LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, options)
+addon.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addonName)
 
 local function EventHandler(self, event, ...)
 	if self[event] then
