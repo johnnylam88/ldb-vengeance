@@ -66,7 +66,7 @@ function addon:UpdateTankStatus()
 end
 
 function addon:GetVengeance()
-	local _, _, icon, _, _, _, _, _, _, _, _, _, _, value = UnitAura("player", vengeanceSpellName)
+	local _, _, icon, _, _, _, _, _, _, _, _, _, _, _, value = UnitAura("player", vengeanceSpellName)
 
 	icon = icon or LDBVengeance.icon or defaultIcon
 	value = value or 0
