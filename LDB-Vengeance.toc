@@ -8,7 +8,6 @@
 ## X-Embeds: LibDataBroker-1.1
 ## X-Category: Combat
 ## Version: @project-version@
-## SavedVariables: LDBVengeanceDB
 
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: Delayed
